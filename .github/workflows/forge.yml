@@ -1,116 +1,103 @@
-name: Execute Kaiser Protocol - Morphe Architecture Build
+name: Execute Kaiser Protocol - Rank 0 Limitless Forging
 
 on:
   workflow_dispatch:
     inputs:
       clean_build:
-        description: 'Force clean compilation without cache'
+        description: 'Force limit-breaker clean compilation'
         required: true
         default: 'true'
 
 jobs:
-  forge_matrix_build:
+  demonic_forge:
     runs-on: ubuntu-latest
     steps:
-      - name: Initialize Core Environment
+      - name: ⚙️ Initialize Core Environment
         uses: actions/checkout@v4
 
-      - name: Setup Java Development Kit (JDK 21)
+      - name: ☕ Setup Java Development Kit (JDK 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Setup Build Dependencies & Android SDK Tools
+      - name: 🛠️ Setup Build Dependencies & JSON Processors
         run: |
           sudo apt-get update
           sudo apt-get install -y wget curl jq python3
           mkdir -p bin/ workspace/ out/
 
-      - name: Fetch Morphe CLI & Anddea Patch Component Matrices (v4.1.0)
+      - name: 📡 Dynamic API Endpoint Extraction (Morphe Core)
         run: |
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | contains("all.jar")) | .browser_download_url')
+          # Fetching Active CLI Engine
+          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
           wget -q -O bin/morphe-cli.jar "$CLI_URL"
           
-          PATCHES_URL=$(curl -s https://api.github.com/repos/anddea/revanced-patches/releases | jq -r '.[] | select(.tag_name == "v4.1.0") | .assets[] | select(.name | endswith(".mpp")) | .browser_download_url' | head -n 1)
-          INTEGRATIONS_URL=$(curl -s https://api.github.com/repos/anddea/revanced-integrations/releases | jq -r '.[] | select(.tag_name == "v4.1.0") | .assets[] | select(.name | endswith(".apk")) | .browser_download_url' | head -n 1)
-          
+          # Fetching Active Patches (.mpp)
+          PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O bin/patches.mpp "$PATCHES_URL"
+          
+          # Fetching Active Integrations
+          INTEGRATIONS_URL=$(curl -s https://api.github.com/repos/anddea/revanced-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url')
           wget -q -O bin/integrations.apk "$INTEGRATIONS_URL"
 
-      - name: Extract & Verify Base Substrate (YouTube v20.51.39 nodpi)
+      - name: 📥 Cryptographic Substrate Acquisition (v20.51.39)
         run: |
-          curl -L -o workspace/youtube_base.apk "https://github.com/anddea/revanced-creator/releases/download/resources/YouTube-20.51.39-nodpi.apk"
-          if [ ! -f "workspace/youtube_base.apk" ]; then
-            echo "Substrate acquisition failure." && exit 1
+          # Bypassing APKMirror via decentralized unkillable open-repository fetchers
+          curl -L -o workspace/base.apk "https://github.com/NoName-exe/revanced-mnml/releases/download/v20.51.39/youtube-revanced-mnml-v20.51.39-all.apk"
+          if [ ! -f "workspace/base.apk" ]; then
+            echo "Primary node blocked. Engaging secondary Sovereign mirror..."
+            curl -L -o workspace/base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.3.4/youtube-universal-morphe-patches-v20.51.39.apk"
           fi
 
-      - name: Generate GmsCore Redesign Bridge (MicroG-RE)
-        run: |
-          MICROG_URL=$(curl -s https://api.github.com/repos/MorpheApp/MicroG-RE/releases/latest | jq -r '.assets[] | select(.name | endswith(".apk")) | .browser_download_url' | head -n 1)
-          wget -q -O out/MicroG-RE_Signed.apk "$MICROG_URL"
-
-      - name: Inject Custom Adaptive Icon Resources
-        run: |
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > workspace/morphe_adaptive_background_custom.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" | base64 -d > workspace/morphe_adaptive_foreground_custom.png
-
-      - name: Configure Experimental Patch Options & Structural Directives
+      - name: 🌑 Inject Sovereign Architecture Options (Pitch Black & UI)
         run: |
           cat << 'EOF' > workspace/options.json
-          {
-            "sanitize-sharing-links": {
-              "clearSi": true,
-              "clearUtmSource": true,
-              "clearContext": true,
-              "clearPi": true
+          [
+            {
+              "patchName": "Theme",
+              "options": [
+                { "key": "darkThemeBackgroundColor", "value": "@android:color/black" },
+                { "key": "lightThemeBackgroundColor", "value": "@android:color/black" }
+              ]
             },
-            "custom-video-speed-gesture": {
-              "enableSpeedGesture": true,
-              "gestureLocation": "bottom_half_horizontal_swipe"
+            {
+              "patchName": "Custom branding name for YouTube",
+              "options": [
+                { "key": "appName", "value": "YouTube Sovereign" }
+              ]
             },
-            "custom-seeking-gesture": {
-              "enableSeekGesture": true,
-              "gestureLocation": "top_half_horizontal_swipe"
-            },
-            "video-quality-prioritization": {
-              "defaultQualityWifi": "highest",
-              "defaultQualityMobile": "highest"
-            },
-            "force-vp9-av1-codec": {
-              "forceAv1": true
-            },
-            "custom-branding": {
-              "iconAppName": "YouTube",
-              "enableAdaptiveIcon": true
+            {
+              "patchName": "Swipe controls",
+              "options": [
+                { "key": "enableSwipeToSeek", "value": "true" },
+                { "key": "enableSwipeBrightness", "value": "true" },
+                { "key": "enableSwipeVolume", "value": "true" }
+              ]
             }
-          }
+          ]
           EOF
 
-      - name: Execute Morphe Bytecode Manipulation Sequence
+      - name: ⚔️ Execute Limit Breaker Compile (JVM Optimized Matrix)
         run: |
-          java -jar bin/morphe-cli.jar patch \
+          # Engaging Demonic Logick: Forcing 4GB memory allocation to prevent OutOfMemory crashes
+          java -Xmx4G -Xms2G -jar bin/morphe-cli.jar patch \
             --patches bin/patches.mpp \
             --merge bin/integrations.apk \
             --options-file workspace/options.json \
-            --out out/YouTube_Kaiser_Sovereign_ARM64.apk \
-            workspace/youtube_base.apk \
-            -e "Sanitize sharing links" \
-            -e "Hide shorts components" \
-            -e "Hide layout components" \
-            -e "Hide feed components" \
-            -e "Custom video speed gesture" \
-            -e "Custom seeking gesture" \
-            -e "Video quality prioritization" \
-            -e "Force vp9 av1 codec" \
-            -e "Custom branding" \
+            -e "SponsorBlock" \
+            -e "Return YouTube Dislike" \
+            -e "Spoof client" \
             -e "GmsCore support" \
-            -d "Hide seekbar tapping" \
-            -d "Enable speed overlay"
+            -e "Theme" \
+            -e "Custom branding name for YouTube" \
+            -e "Swipe controls" \
+            --out out/Sovereign-Compiled.apk \
+            workspace/base.apk
 
-      - name: Upload Sovereign Non-Root Asset Core
+      - name: 📤 Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
-          name: Sovereign-Package-Matrix
+          name: Sovereign-Rank0-Matrix
           path: out/*.apk
           
