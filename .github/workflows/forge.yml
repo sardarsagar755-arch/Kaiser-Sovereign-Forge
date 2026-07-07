@@ -12,45 +12,41 @@ jobs:
   demonic_forge:
     runs-on: ubuntu-latest
     steps:
-      - name: ⚙️ Initialize Core Environment
+      - name: Initialize Core Environment
         uses: actions/checkout@v4
 
-      - name: ☕ Setup Java Development Kit (JDK 21)
+      - name: Setup Java Development Kit (JDK 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: 🛠️ Setup Build Dependencies & JSON Processors
+      - name: Setup Build Dependencies & JSON Processors
         run: |
           sudo apt-get update
           sudo apt-get install -y wget curl jq python3
           mkdir -p bin/ workspace/ out/
 
-      - name: 📡 Dynamic API Endpoint Extraction (Morphe Core)
+      - name: Dynamic API Endpoint Extraction (Morphe Core)
         run: |
           # Fetching Active CLI Engine
           CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
           wget -q -O bin/morphe-cli.jar "$CLI_URL"
           
-          # Fetching Active Patches (.mpp)
+          # Fetching Active Patches (.mpp) with embedded integrations
           PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O bin/patches.mpp "$PATCHES_URL"
-          
-          # Fetching Active Integrations
-          INTEGRATIONS_URL=$(curl -s https://api.github.com/repos/anddea/revanced-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url')
-          wget -q -O bin/integrations.apk "$INTEGRATIONS_URL"
 
-      - name: 📥 Cryptographic Substrate Acquisition (v20.51.39)
+      - name: Cryptographic Substrate Acquisition (v20.51.39)
         run: |
-          # Bypassing APKMirror via decentralized unkillable open-repository fetchers
+          # Bypassing Cloudflare via decentralized open-repository fetchers
           curl -L -o workspace/base.apk "https://github.com/NoName-exe/revanced-mnml/releases/download/v20.51.39/youtube-revanced-mnml-v20.51.39-all.apk"
           if [ ! -f "workspace/base.apk" ]; then
             echo "Primary node blocked. Engaging secondary Sovereign mirror..."
             curl -L -o workspace/base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.3.4/youtube-universal-morphe-patches-v20.51.39.apk"
           fi
 
-      - name: 🌑 Inject Sovereign Architecture Options (Pitch Black & UI)
+      - name: Inject Sovereign Architecture Options (Pitch Black & UI)
         run: |
           cat << 'EOF' > workspace/options.json
           [
@@ -78,12 +74,11 @@ jobs:
           ]
           EOF
 
-      - name: ⚔️ Execute Limit Breaker Compile (JVM Optimized Matrix)
+      - name: Execute Limit Breaker Compile (JVM Optimized Matrix)
         run: |
-          # Engaging Demonic Logick: Forcing 4GB memory allocation to prevent OutOfMemory crashes
+          # Removed the invalid --merge argument. Integrations are processed natively via patches.mpp
           java -Xmx4G -Xms2G -jar bin/morphe-cli.jar patch \
             --patches bin/patches.mpp \
-            --merge bin/integrations.apk \
             --options-file workspace/options.json \
             -e "SponsorBlock" \
             -e "Return YouTube Dislike" \
@@ -92,10 +87,10 @@ jobs:
             -e "Theme" \
             -e "Custom branding name for YouTube" \
             -e "Swipe controls" \
-            --out out/Sovereign-Compiled.apk \
+            --out out/YouTube_Kaiser_Sovereign.apk \
             workspace/base.apk
 
-      - name: 📤 Upload Sovereign Target Asset
+      - name: Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
           name: Sovereign-Rank0-Matrix
