@@ -8,10 +8,6 @@ on:
         required: true
         default: 'true'
 
-env:
-  BASE_APK_VER: "20.51.39"
-  APK_MIRROR_URL: "https://raw.githubusercontent.com/NoName-exe/apk-archive/main/com.google.android.youtube-20.51.39-nodpi.apk"
-
 jobs:
   sovereign_compilation:
     runs-on: ubuntu-latest
@@ -38,73 +34,32 @@ jobs:
           PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O patches.mpp "$PATCHES_URL"
           
-      - name: 4. Substrate Synchronization (Cloudflare Bypass)
+      - name: 4. Substrate Synchronization & Verification
         run: |
           cd workspace
-          echo "Initiating Direct Repository Pull for Target Base: ${BASE_APK_VER}"
-          curl -L -o target-base.apk "${APK_MIRROR_URL}"
+          echo "Engaging Primary Mirror for Target Base..."
+          curl -L -o target-base.apk "https://archive.org/download/com.google.android.youtube_20.51.39/com.google.android.youtube_20.51.39.apk"
           
-      - name: 5. Options.json AST Schema Generation (V5+ List of Maps)
-        run: |
-          cd workspace
-          cat << 'EOF' > sovereign-options.json
-          [
-            {
-              "patchName": "Custom branding",
-              "enabled": true,
-              "options": [
-                { "key": "App name", "value": "YouTube Sovereign" },
-                { "key": "Custom icon", "value": "false" }
-              ]
-            },
-            {
-              "patchName": "Theme",
-              "enabled": true,
-              "options": [
-                { "key": "Dark theme", "value": "AMOLED" },
-                { "key": "AMOLED pitch black color", "value": "@android:color/black" }
-              ]
-            },
-            {
-              "patchName": "Swipe controls",
-              "enabled": true,
-              "options": [
-                { "key": "Enable volume swipe gesture", "value": "true" },
-                { "key": "Enable brightness swipe gesture", "value": "true" },
-                { "key": "Require long press to activate", "value": "false" },
-                { "key": "Swipe control screen width", "value": "35" }
-              ]
-            },
-            { "patchName": "SponsorBlock", "enabled": true, "options": [ { "key": "Default segment behavior", "value": "skip" } ] },
-            { "patchName": "GmsCore support", "enabled": true },
-            { "patchName": "Return YouTube Dislike", "enabled": true },
-            { "patchName": "Hide layout components", "enabled": true },
-            { "patchName": "MicroG support", "enabled": true }
-          ]
-          EOF
+          # The Absolute Trap Checker: Verifying if matrix injected a 0-byte file
+          APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
+          if [ "$APK_SIZE" -lt 15000000 ]; then
+            echo "::error::THE MATRIX TRAP DETECTED: Base APK download failed or is corrupt! Size: $APK_SIZE bytes."
+            exit 1
+          fi
+          echo "Substrate Verification Passed. Size: $APK_SIZE bytes."
 
-      - name: 6. Ephemeral Keystore Cryptographic Generation
+      - name: 5. Execute Demonic Compile (Raw Dalvik Injection)
         run: |
           cd workspace
-          keytool -genkey -v -keystore morphe.keystore -alias morphe -keyalg RSA -keysize 2048 -validity 10000 -storepass morphe_secure -keypass morphe_secure -dname "CN=Sovereign, OU=Shadow, O=Kaiser, L=WestBengal, S=India, C=IN"
-
-      - name: 7. Execute Demonic Compile (God Mode Override)
-        run: |
-          cd workspace
+          # Purged all fragile JSON parsers and artificial keystore limits.
+          # Forcing the engine to utilize pure native Dalvik execution and auto-signing.
           java -Xmx4G -XX:+UseZGC \
             -jar morphe-cli.jar patch \
+            target-base.apk \
             --patches patches.mpp \
-            --options-file sovereign-options.json \
-            --keystore-entry-alias="morphe" \
-            --keystore-password="morphe_secure" \
-            --keystore-entry-password="morphe_secure" \
-            --keystore="morphe.keystore" \
-            --striplibs arm64-v8a \
-            --out YouTube_Kaiser_Sovereign.apk \
-            --purge \
-            target-base.apk
+            --out YouTube_Kaiser_Sovereign.apk
 
-      - name: 8. Upload Sovereign Target Asset
+      - name: 6. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
           name: Sovereign-Rank0-Matrix
