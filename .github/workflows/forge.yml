@@ -1,4 +1,4 @@
-name: Execute Kaiser Protocol - Rank 0 Limitless Forging
+name: RANK 0 DEMONIC DEEP COMPILE - SOVEREIGN MATRIX
 
 on:
   workflow_dispatch:
@@ -8,90 +8,101 @@ on:
         required: true
         default: 'true'
 
+env:
+  CLI_VERSION: "v1.9.1"
+  PATCHES_VERSION: "v1.34.0"
+  BASE_APK_VER: "20.51.39"
+  APK_MIRROR_URL: "https://raw.githubusercontent.com/NoName-exe/apk-archive/main/com.google.android.youtube-20.51.39-nodpi.apk"
+
 jobs:
-  demonic_forge:
+  sovereign_compilation:
     runs-on: ubuntu-latest
     steps:
-      - name: Initialize Core Environment
+      - name: 1. Workspace Initialization
         uses: actions/checkout@v4
 
-      - name: Setup Java Development Kit (JDK 21)
+      - name: 2. JVM Environment Provisioning (Java 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
-
-      - name: Setup Build Dependencies & JSON Processors
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget curl jq python3
-          mkdir -p bin/ workspace/ out/
-
-      - name: Dynamic API Endpoint Extraction (Morphe Core)
-        run: |
-          # Fetching Active CLI Engine
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
-          wget -q -O bin/morphe-cli.jar "$CLI_URL"
           
-          # Fetching Active Patches (.mpp)
-          PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
-          wget -q -O bin/patches.mpp "$PATCHES_URL"
-
-      - name: Cryptographic Substrate Acquisition (v20.51.39)
+      - name: 3. Morphe Toolchain Acquisition (Monolithic)
         run: |
-          # Bypassing Cloudflare via decentralized open-repository fetchers
-          curl -L -o workspace/base.apk "https://github.com/NoName-exe/revanced-mnml/releases/download/v20.51.39/youtube-revanced-mnml-v20.51.39-all.apk"
-          if [ ! -f "workspace/base.apk" ]; then
-            echo "Primary node blocked. Engaging secondary Sovereign mirror..."
-            curl -L -o workspace/base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.3.4/youtube-universal-morphe-patches-v20.51.39.apk"
-          fi
-
-      - name: Inject Sovereign Architecture Options (V2 Schema)
+          mkdir -p workspace && cd workspace
+          echo "Acquiring Morphe CLI v${CLI_VERSION}"
+          wget -qO morphe-cli.jar "https://github.com/MorpheApp/morphe-cli/releases/download/${CLI_VERSION}/morphe-cli-${CLI_VERSION}-all.jar"
+          echo "Acquiring Patch Bundle v${PATCHES_VERSION}"
+          wget -qO patches.mpp "https://github.com/MorpheApp/morphe-patches/releases/download/${PATCHES_VERSION}/patches-${PATCHES_VERSION}.mpp"
+          
+      - name: 4. Substrate Synchronization (Cloudflare Bypass)
         run: |
-          # Overriding matrix logic with the new 'patch' map architecture
-          cat << 'EOF' > workspace/options.json
+          cd workspace
+          echo "Initiating Direct Repository Pull for Target Base: ${BASE_APK_VER}"
+          curl -L -o target-base.apk "${APK_MIRROR_URL}"
+          
+      - name: 5. Options.json AST Schema Generation (V5+ List of Maps)
+        run: |
+          cd workspace
+          cat << 'EOF' > sovereign-options.json
           [
             {
-              "patch": "Theme",
-              "options": {
-                "darkThemeBackgroundColor": "@android:color/black",
-                "lightThemeBackgroundColor": "@android:color/black"
-              }
+              "patchName": "Custom branding",
+              "enabled": true,
+              "options": [
+                { "key": "App name", "value": "YouTube Sovereign" },
+                { "key": "Custom icon", "value": "false" }
+              ]
             },
             {
-              "patch": "Custom branding name for YouTube",
-              "options": {
-                "appName": "YouTube Sovereign"
-              }
+              "patchName": "Theme",
+              "enabled": true,
+              "options": [
+                { "key": "Dark theme", "value": "AMOLED" },
+                { "key": "AMOLED pitch black color", "value": "@android:color/black" }
+              ]
             },
             {
-              "patch": "Swipe controls",
-              "options": {
-                "enableSwipeToSeek": "true",
-                "enableSwipeBrightness": "true",
-                "enableSwipeVolume": "true"
-              }
-            }
+              "patchName": "Swipe controls",
+              "enabled": true,
+              "options": [
+                { "key": "Enable volume swipe gesture", "value": "true" },
+                { "key": "Enable brightness swipe gesture", "value": "true" },
+                { "key": "Require long press to activate", "value": "false" },
+                { "key": "Swipe control screen width", "value": "35" }
+              ]
+            },
+            { "patchName": "SponsorBlock", "enabled": true, "options": [ { "key": "Default segment behavior", "value": "skip" } ] },
+            { "patchName": "GmsCore support", "enabled": true },
+            { "patchName": "Return YouTube Dislike", "enabled": true },
+            { "patchName": "Hide layout components", "enabled": true },
+            { "patchName": "MicroG support", "enabled": true }
           ]
           EOF
 
-      - name: Execute Limit Breaker Compile (JVM Optimized Matrix)
+      - name: 6. Ephemeral Keystore Cryptographic Generation
         run: |
-          java -Xmx4G -Xms2G -jar bin/morphe-cli.jar patch \
-            --patches bin/patches.mpp \
-            --options-file workspace/options.json \
-            -e "SponsorBlock" \
-            -e "Return YouTube Dislike" \
-            -e "Spoof client" \
-            -e "GmsCore support" \
-            -e "Theme" \
-            -e "Custom branding name for YouTube" \
-            -e "Swipe controls" \
-            --out out/YouTube_Kaiser_Sovereign.apk \
-            workspace/base.apk
+          cd workspace
+          keytool -genkey -v -keystore morphe.keystore -alias morphe -keyalg RSA -keysize 2048 -validity 10000 -storepass morphe_secure -keypass morphe_secure -dname "CN=Sovereign, OU=Shadow, O=Kaiser, L=WestBengal, S=India, C=IN"
 
-      - name: Upload Sovereign Target Asset
+      - name: 7. Execute Demonic Compile (God Mode Override)
+        run: |
+          cd workspace
+          java -Xmx4G -XX:+UseZGC \
+            -jar morphe-cli.jar patch \
+            --patches patches.mpp \
+            --options-file sovereign-options.json \
+            --keystore-entry-alias="morphe" \
+            --keystore-password="morphe_secure" \
+            --keystore-entry-password="morphe_secure" \
+            --keystore="morphe.keystore" \
+            --striplibs arm64-v8a \
+            --out YouTube_Kaiser_Sovereign.apk \
+            --purge \
+            target-base.apk
+
+      - name: 8. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
-          name: Sovereign-Rank0-Matrix
-          path: out/*.apk
+          name: Sovereign-Rank0-Matrix-V1.9.1
+          path: workspace/YouTube_Kaiser_Sovereign.apk
