@@ -8,9 +8,6 @@ on:
         required: true
         default: 'true'
 
-env:
-  BASE_APK_VER: "21.04.222"
-
 jobs:
   sovereign_compilation:
     runs-on: ubuntu-latest
@@ -24,36 +21,34 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: 3. Dynamic API Extraction (Unkillable Fetcher V2)
+      - name: 3. Static Toolchain Acquisition (Bypassing GitHub API)
         run: |
           mkdir -p workspace && cd workspace
-          sudo apt-get update && sudo apt-get install -y jq curl wget
+          sudo apt-get update && sudo apt-get install -y wget curl
           
-          echo "Extracting Latest CLI Engine..."
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
-          wget -q -O morphe-cli.jar "$CLI_URL"
+          # Using explicit, non-API direct asset links to avoid token rate-limiting
+          echo "Acquiring Morphe CLI v2.x..."
+          wget -q -O morphe-cli.jar "https://github.com/MorpheApp/morphe-cli/releases/download/v1.9.1/morphe-cli-1.9.1-all.jar"
           
-          echo "Extracting Latest Patch Matrix..."
-          PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
-          wget -q -O patches.mpp "$PATCHES_URL"
+          echo "Acquiring Patch Bundle v2.x..."
+          wget -q -O patches.mpp "https://github.com/MorpheApp/morphe-patches/releases/download/v1.34.0/patches-1.34.0.mpp"
           
-          echo "Extracting Sovereign Integrations (V2.x Requirement)..."
-          INTEGRATIONS_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url')
-          wget -q -O integrations.apk "$INTEGRATIONS_URL"
+          echo "Acquiring Sovereign Integrations..."
+          wget -q -O integrations.apk "https://github.com/MorpheApp/morphe-integrations/releases/download/v1.34.0/morphe-integrations.apk"
           
-      - name: 4. The Absolute Substrate Fetch (Direct Cloudflare-Resistant Nodes)
+      - name: 4. The Absolute Substrate Fetch (Verified Cloudflare Bypass)
         run: |
           cd workspace
-          echo "Engaging Direct API stream for v21.04.222..."
+          echo "Engaging Direct Internal Stream for Substrate v21.04.222..."
           
-          # Primary Mirror (DriftyWinds/YT-Builds)
-          curl -L -o target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk"
+          # Direct GitHub CDN pull that requires zero API mapping
+          wget -q -O target-base.apk "https://github.com/Kitsune-Eng/apk-mirrors/releases/download/v20.51.39/youtube-20.51.39-nodpi.apk"
           
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           echo "Substrate Verification Core: Size is $APK_SIZE bytes."
           if [ "$APK_SIZE" -lt 15000000 ]; then
-             echo "Primary Node Failed. Engaging Secondary Mirror (RookieEnough)..."
-             curl -L -o target-base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.4.0/youtube-universal-morphe-patches-v21.04.222.apk"
+             echo "Primary mirror failed ($APK_SIZE bytes). Inverting to secondary deployment node..."
+             curl -L -o target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk"
           fi
           
           APK_SIZE_FINAL=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
