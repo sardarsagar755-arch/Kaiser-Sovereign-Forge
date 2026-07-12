@@ -9,8 +9,6 @@ on:
         default: 'true'
 
 env:
-  CLI_VERSION: "v1.9.1"
-  PATCHES_VERSION: "v1.34.0"
   BASE_APK_VER: "20.51.39"
   APK_MIRROR_URL: "https://raw.githubusercontent.com/NoName-exe/apk-archive/main/com.google.android.youtube-20.51.39-nodpi.apk"
 
@@ -27,13 +25,18 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: 3. Morphe Toolchain Acquisition (Monolithic)
+      - name: 3. Dynamic API Extraction (Unkillable Fetcher)
         run: |
           mkdir -p workspace && cd workspace
-          echo "Acquiring Morphe CLI v${CLI_VERSION}"
-          wget -qO morphe-cli.jar "https://github.com/MorpheApp/morphe-cli/releases/download/${CLI_VERSION}/morphe-cli-${CLI_VERSION}-all.jar"
-          echo "Acquiring Patch Bundle v${PATCHES_VERSION}"
-          wget -qO patches.mpp "https://github.com/MorpheApp/morphe-patches/releases/download/${PATCHES_VERSION}/patches-${PATCHES_VERSION}.mpp"
+          sudo apt-get update && sudo apt-get install -y jq curl wget
+          
+          echo "Extracting Latest CLI Engine..."
+          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
+          wget -q -O morphe-cli.jar "$CLI_URL"
+          
+          echo "Extracting Latest Patch Matrix..."
+          PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
+          wget -q -O patches.mpp "$PATCHES_URL"
           
       - name: 4. Substrate Synchronization (Cloudflare Bypass)
         run: |
@@ -104,5 +107,6 @@ jobs:
       - name: 8. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
-          name: Sovereign-Rank0-Matrix-V1.9.1
+          name: Sovereign-Rank0-Matrix
           path: workspace/YouTube_Kaiser_Sovereign.apk
+          
