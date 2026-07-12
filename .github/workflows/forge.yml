@@ -1,4 +1,4 @@
-name: RANK 0 DEMONIC DEEP COMPILE - SOVEREIGN MATRIX
+name: RANK 0 DEMONIC DEEP COMPILE - SOVEREIGN MATRIX V2.x
 
 on:
   workflow_dispatch:
@@ -7,6 +7,9 @@ on:
         description: 'Force limit-breaker clean compilation'
         required: true
         default: 'true'
+
+env:
+  BASE_APK_VER: "21.04.222"
 
 jobs:
   sovereign_compilation:
@@ -21,10 +24,10 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: 3. Dynamic API Extraction (Unkillable Fetcher)
+      - name: 3. Dynamic API Extraction (Unkillable Fetcher V2)
         run: |
           mkdir -p workspace && cd workspace
-          sudo apt-get update && sudo apt-get install -y jq curl wget unzip
+          sudo apt-get update && sudo apt-get install -y jq curl wget
           
           echo "Extracting Latest CLI Engine..."
           CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
@@ -34,25 +37,28 @@ jobs:
           PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O patches.mpp "$PATCHES_URL"
           
-      - name: 4. The Absolute Substrate Fetch (Direct APK Purifier API)
+          echo "Extracting Sovereign Integrations (V2.x Requirement)..."
+          INTEGRATIONS_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url')
+          wget -q -O integrations.apk "$INTEGRATIONS_URL"
+          
+      - name: 4. The Absolute Substrate Fetch (Direct Cloudflare-Resistant Nodes)
         run: |
           cd workspace
-          echo "Bypassing 404 dead-ends. Engaging Direct API stream..."
+          echo "Engaging Direct API stream for v21.04.222..."
           
-          # Using a direct, unblockable raw mirror that GitHub Actions trusts natively
-          wget -q -O target-base.apk "https://github.com/Kitsune-Eng/apk-mirrors/releases/download/v20.51.39/youtube-20.51.39-nodpi.apk"
+          # Primary Mirror (DriftyWinds/YT-Builds)
+          curl -L -o target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk"
           
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           echo "Substrate Verification Core: Size is $APK_SIZE bytes."
           if [ "$APK_SIZE" -lt 15000000 ]; then
-             echo "Primary Node Failed. Attempting Last Resort Fallback..."
-             # Fallback to an unmetered raw file host
-             curl -L -o target-base.apk "https://transfer.sh/get/1a2b3c/youtube.apk" || echo "Fallback failed"
+             echo "Primary Node Failed. Engaging Secondary Mirror (RookieEnough)..."
+             curl -L -o target-base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.4.0/youtube-universal-morphe-patches-v21.04.222.apk"
           fi
           
           APK_SIZE_FINAL=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           if [ "$APK_SIZE_FINAL" -lt 15000000 ]; then
-            echo "::error::Substrate extraction completely failed. Size: $APK_SIZE_FINAL bytes."
+            echo "::error::Substrate extraction completely failed. Matrix blocked the stream."
             exit 1
           fi
 
@@ -62,51 +68,64 @@ jobs:
           cat << 'EOF' > sovereign-options.json
           [
             {
-              "patchName": "Custom branding",
-              "enabled": true,
-              "options": [
-                { "key": "App name", "value": "YouTube Sovereign" },
-                { "key": "Custom icon", "value": "false" }
-              ]
+              "patch": "Theme",
+              "options": {
+                "background_color": "@android:color/black",
+                "promoted_color": "@android:color/black",
+                "header_color": "@android:color/black"
+              }
             },
             {
-              "patchName": "Theme",
-              "enabled": true,
-              "options": [
-                { "key": "Dark theme", "value": "AMOLED" },
-                { "key": "AMOLED pitch black color", "value": "@android:color/black" }
-              ]
+              "patch": "Custom branding name",
+              "options": {
+                "appName": "YouTube Sovereign"
+              }
             },
             {
-              "patchName": "Swipe controls",
-              "enabled": true,
-              "options": [
-                { "key": "Enable volume swipe gesture", "value": "true" },
-                { "key": "Enable brightness swipe gesture", "value": "true" },
-                { "key": "Require long press to activate", "value": "false" },
-                { "key": "Swipe control screen width", "value": "35" }
-              ]
+              "patch": "Swipe controls",
+              "options": {
+                "enable_volume_gesture": true,
+                "enable_brightness_gesture": true
+              }
             },
-            { "patchName": "SponsorBlock", "enabled": true, "options": [ { "key": "Default segment behavior", "value": "skip" } ] },
-            { "patchName": "GmsCore support", "enabled": true },
-            { "patchName": "Return YouTube Dislike", "enabled": true },
-            { "patchName": "Hide layout components", "enabled": true },
-            { "patchName": "MicroG support", "enabled": true }
+            {
+              "patch": "SponsorBlock",
+              "options": {
+                "video_sponsor_segments": [
+                  "sponsor",
+                  "intro",
+                  "outro",
+                  "selfpromo",
+                  "interaction"
+                ]
+              }
+            }
           ]
           EOF
 
-      - name: 6. Execute Demonic Compile (God Mode Override)
+      - name: 6. Ephemeral Keystore Cryptographic Generation
+        run: |
+          cd workspace
+          keytool -genkey -v -keystore morphe.keystore -alias morphe -keyalg RSA -keysize 2048 -validity 10000 -storepass morphe_secure -keypass morphe_secure -dname "CN=Sovereign, OU=Shadow, O=Kaiser, L=WestBengal, S=India, C=IN"
+
+      - name: 7. Execute Demonic Compile (God Mode Override)
         run: |
           cd workspace
           java -Xmx4G -XX:+UseZGC \
             -jar morphe-cli.jar patch \
-            target-base.apk \
             --patches patches.mpp \
+            --merge integrations.apk \
             --options-file sovereign-options.json \
-            --out YouTube_Kaiser_Sovereign.apk
+            --keystore-entry-alias="morphe" \
+            --keystore-password="morphe_secure" \
+            --keystore-entry-password="morphe_secure" \
+            --keystore="morphe.keystore" \
+            --exclusive "Optimization Tweaks" \
+            --out YouTube_Kaiser_Sovereign.apk \
+            target-base.apk
 
-      - name: 7. Upload Sovereign Target Asset
+      - name: 8. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
-          name: Sovereign-Rank0-Matrix
+          name: Sovereign-Rank0-Matrix-V2.x
           path: workspace/YouTube_Kaiser_Sovereign.apk
