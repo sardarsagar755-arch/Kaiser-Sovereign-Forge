@@ -34,34 +34,78 @@ jobs:
           PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O patches.mpp "$PATCHES_URL"
           
-      - name: 4. Substrate Synchronization & Verification
+      - name: 4. Sovereign Substrate Sync (Stealth Bypass)
         run: |
           cd workspace
-          echo "Engaging Primary Mirror for Target Base..."
-          curl -L -o target-base.apk "https://archive.org/download/com.google.android.youtube_20.51.39/com.google.android.youtube_20.51.39.apk"
+          echo "Engaging Stealth Mode to bypass Cloudflare..."
           
-          # The Absolute Trap Checker: Verifying if matrix injected a 0-byte file
+          # Primary Node: GitHub Releases (Unblockable by GitHub Actions)
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -o target-base.apk "https://github.com/revanced-apks/build-apps/releases/download/v20.51.39/youtube-20.51.39.apk"
+          
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           if [ "$APK_SIZE" -lt 15000000 ]; then
-            echo "::error::THE MATRIX TRAP DETECTED: Base APK download failed or is corrupt! Size: $APK_SIZE bytes."
+            echo "Primary Node Failed ($APK_SIZE bytes). Engaging Secondary Mirror Beta..."
+            curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -o target-base.apk "https://gitlab.com/Kitsune-Eng/apk-mirrors/-/raw/main/youtube/yt-20.51.39-arm64-v8a.apk"
+          fi
+          
+          APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
+          if [ "$APK_SIZE" -lt 15000000 ]; then
+            echo "::error::ALL NODES BLOCKED. Download failed or corrupt. Size: $APK_SIZE bytes."
             exit 1
           fi
-          echo "Substrate Verification Passed. Size: $APK_SIZE bytes."
+          echo "Substrate Secured & Verified! Size: $APK_SIZE bytes."
 
-      - name: 5. Execute Demonic Compile (Raw Dalvik Injection)
+      - name: 5. Options.json AST Schema Generation (V5+)
         run: |
           cd workspace
-          # Purged all fragile JSON parsers and artificial keystore limits.
-          # Forcing the engine to utilize pure native Dalvik execution and auto-signing.
+          cat << 'EOF' > sovereign-options.json
+          [
+            {
+              "patchName": "Custom branding",
+              "enabled": true,
+              "options": [
+                { "key": "App name", "value": "YouTube Sovereign" },
+                { "key": "Custom icon", "value": "false" }
+              ]
+            },
+            {
+              "patchName": "Theme",
+              "enabled": true,
+              "options": [
+                { "key": "Dark theme", "value": "AMOLED" },
+                { "key": "AMOLED pitch black color", "value": "@android:color/black" }
+              ]
+            },
+            {
+              "patchName": "Swipe controls",
+              "enabled": true,
+              "options": [
+                { "key": "Enable volume swipe gesture", "value": "true" },
+                { "key": "Enable brightness swipe gesture", "value": "true" },
+                { "key": "Require long press to activate", "value": "false" },
+                { "key": "Swipe control screen width", "value": "35" }
+              ]
+            },
+            { "patchName": "SponsorBlock", "enabled": true, "options": [ { "key": "Default segment behavior", "value": "skip" } ] },
+            { "patchName": "GmsCore support", "enabled": true },
+            { "patchName": "Return YouTube Dislike", "enabled": true },
+            { "patchName": "Hide layout components", "enabled": true },
+            { "patchName": "MicroG support", "enabled": true }
+          ]
+          EOF
+
+      - name: 6. Execute Demonic Compile (God Mode Override)
+        run: |
+          cd workspace
           java -Xmx4G -XX:+UseZGC \
             -jar morphe-cli.jar patch \
             target-base.apk \
             --patches patches.mpp \
+            --options-file sovereign-options.json \
             --out YouTube_Kaiser_Sovereign.apk
 
-      - name: 6. Upload Sovereign Target Asset
+      - name: 7. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
           name: Sovereign-Rank0-Matrix
           path: workspace/YouTube_Kaiser_Sovereign.apk
-          
