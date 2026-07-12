@@ -21,33 +21,51 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: 3. Static Toolchain Acquisition (Bypassing GitHub API)
+      - name: 3. Unkillable Dynamic Fetcher (Failsafe Mode)
         run: |
           mkdir -p workspace && cd workspace
-          sudo apt-get update && sudo apt-get install -y wget curl
+          sudo apt-get update && sudo apt-get install -y curl wget jq
           
-          # Using explicit, non-API direct asset links to avoid token rate-limiting
-          echo "Acquiring Morphe CLI v2.x..."
-          wget -q -O morphe-cli.jar "https://github.com/MorpheApp/morphe-cli/releases/download/v1.9.1/morphe-cli-1.9.1-all.jar"
+          # Failsafe Function: If API is blocked (null), fallback to a reliable open-source fork (ReVanced)
           
-          echo "Acquiring Patch Bundle v2.x..."
-          wget -q -O patches.mpp "https://github.com/MorpheApp/morphe-patches/releases/download/v1.34.0/patches-1.34.0.mpp"
+          echo "Acquiring CLI Engine..."
+          CLI_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-cli/releases/latest | jq -r '.assets[] | select(.name | test("revanced-cli-.*-all\\.jar")) | .browser_download_url')
+          if [ "$CLI_URL" == "null" ] || [ -z "$CLI_URL" ]; then
+            echo "API Blocked. Engaging Failsafe Mirror..."
+            wget -q -O morphe-cli.jar "https://github.com/inotia00/revanced-cli/releases/download/v4.6.0/revanced-cli-4.6.0-all.jar"
+          else
+            wget -q -O morphe-cli.jar "$CLI_URL"
+          fi
           
-          echo "Acquiring Sovereign Integrations..."
-          wget -q -O integrations.apk "https://github.com/MorpheApp/morphe-integrations/releases/download/v1.34.0/morphe-integrations.apk"
+          echo "Acquiring Patch Bundle..."
+          PATCHES_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.rvp$|.*\\.mpp$")) | .browser_download_url' | head -n 1)
+          if [ "$PATCHES_URL" == "null" ] || [ -z "$PATCHES_URL" ]; then
+             echo "API Blocked. Engaging Failsafe Mirror..."
+             wget -q -O patches.mpp "https://github.com/inotia00/revanced-patches/releases/download/v4.11.0/revanced-patches-4.11.0.rvp"
+          else
+             wget -q -O patches.mpp "$PATCHES_URL"
+          fi
           
+          echo "Acquiring Integrations..."
+          INT_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url' | head -n 1)
+          if [ "$INT_URL" == "null" ] || [ -z "$INT_URL" ]; then
+             echo "API Blocked. Engaging Failsafe Mirror..."
+             wget -q -O integrations.apk "https://github.com/inotia00/revanced-integrations/releases/download/v1.6.0/revanced-integrations-1.6.0.apk"
+          else
+             wget -q -O integrations.apk "$INT_URL"
+          fi
+
       - name: 4. The Absolute Substrate Fetch (Verified Cloudflare Bypass)
         run: |
           cd workspace
-          echo "Engaging Direct Internal Stream for Substrate v21.04.222..."
+          echo "Engaging Direct Internal Stream for Substrate..."
           
-          # Direct GitHub CDN pull that requires zero API mapping
           wget -q -O target-base.apk "https://github.com/Kitsune-Eng/apk-mirrors/releases/download/v20.51.39/youtube-20.51.39-nodpi.apk"
           
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           echo "Substrate Verification Core: Size is $APK_SIZE bytes."
           if [ "$APK_SIZE" -lt 15000000 ]; then
-             echo "Primary mirror failed ($APK_SIZE bytes). Inverting to secondary deployment node..."
+             echo "Primary mirror failed. Inverting to secondary deployment node..."
              curl -L -o target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk"
           fi
           
@@ -115,7 +133,6 @@ jobs:
             --keystore-password="morphe_secure" \
             --keystore-entry-password="morphe_secure" \
             --keystore="morphe.keystore" \
-            --exclusive "Optimization Tweaks" \
             --out YouTube_Kaiser_Sovereign.apk \
             target-base.apk
 
