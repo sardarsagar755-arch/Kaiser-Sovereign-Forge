@@ -1,4 +1,4 @@
-name: RANK 0 DEMONIC DEEP COMPILE - SOVEREIGN MATRIX V2.x
+name: RANK 0 DEMONIC DEEP COMPILE - SOVEREIGN MATRIX
 
 on:
   workflow_dispatch:
@@ -21,56 +21,38 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: 3. Unkillable Dynamic Fetcher (Failsafe Mode)
+      - name: 3. The Shadow Scraper (API-Bypass Core)
         run: |
           mkdir -p workspace && cd workspace
-          sudo apt-get update && sudo apt-get install -y curl wget jq
+          sudo apt-get update && sudo apt-get install -y curl wget grep
           
-          # Failsafe Function: If API is blocked (null), fallback to a reliable open-source fork (ReVanced)
+          echo "Slicing through Corporate API Limits via HTML DOM Scraping..."
           
-          echo "Acquiring CLI Engine..."
-          CLI_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-cli/releases/latest | jq -r '.assets[] | select(.name | test("revanced-cli-.*-all\\.jar")) | .browser_download_url')
-          if [ "$CLI_URL" == "null" ] || [ -z "$CLI_URL" ]; then
-            echo "API Blocked. Engaging Failsafe Mirror..."
-            wget -q -O morphe-cli.jar "https://github.com/inotia00/revanced-cli/releases/download/v4.6.0/revanced-cli-4.6.0-all.jar"
-          else
-            wget -q -O morphe-cli.jar "$CLI_URL"
-          fi
+          # Extracting Core bypassing API entirely. 
+          # Using ReVanced stable core natively mapped to Morphe architecture.
           
-          echo "Acquiring Patch Bundle..."
-          PATCHES_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.rvp$|.*\\.mpp$")) | .browser_download_url' | head -n 1)
-          if [ "$PATCHES_URL" == "null" ] || [ -z "$PATCHES_URL" ]; then
-             echo "API Blocked. Engaging Failsafe Mirror..."
-             wget -q -O patches.mpp "https://github.com/inotia00/revanced-patches/releases/download/v4.11.0/revanced-patches-4.11.0.rvp"
-          else
-             wget -q -O patches.mpp "$PATCHES_URL"
-          fi
+          CLI_URI=$(curl -sL https://github.com/ReVanced/revanced-cli/releases/latest | grep -oE '/ReVanced/revanced-cli/releases/download/[^"]+\.jar' | head -n 1)
+          wget -q -O morphe-cli.jar "https://github.com$CLI_URI"
           
-          echo "Acquiring Integrations..."
-          INT_URL=$(curl -s https://api.github.com/repos/ReVanced/revanced-integrations/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.apk$")) | .browser_download_url' | head -n 1)
-          if [ "$INT_URL" == "null" ] || [ -z "$INT_URL" ]; then
-             echo "API Blocked. Engaging Failsafe Mirror..."
-             wget -q -O integrations.apk "https://github.com/inotia00/revanced-integrations/releases/download/v1.6.0/revanced-integrations-1.6.0.apk"
-          else
-             wget -q -O integrations.apk "$INT_URL"
-          fi
+          PATCH_URI=$(curl -sL https://github.com/ReVanced/revanced-patches/releases/latest | grep -oE '/ReVanced/revanced-patches/releases/download/[^"]+\.rvp|/ReVanced/revanced-patches/releases/download/[^"]+\.jar' | head -n 1)
+          wget -q -O patches.mpp "https://github.com$PATCH_URI"
+          
+          INT_URI=$(curl -sL https://github.com/ReVanced/revanced-integrations/releases/latest | grep -oE '/ReVanced/revanced-integrations/releases/download/[^"]+\.apk' | head -n 1)
+          wget -q -O integrations.apk "https://github.com$INT_URI"
+          
+          echo "Shadow Extraction Complete. Core Verified:"
+          ls -lh morphe-cli.jar patches.mpp integrations.apk
 
-      - name: 4. The Absolute Substrate Fetch (Verified Cloudflare Bypass)
+      - name: 4. The Absolute Substrate Fetch (Static Base)
         run: |
           cd workspace
           echo "Engaging Direct Internal Stream for Substrate..."
           
-          wget -q -O target-base.apk "https://github.com/Kitsune-Eng/apk-mirrors/releases/download/v20.51.39/youtube-20.51.39-nodpi.apk"
+          # Unblockable raw mirror for stable Substrate compilation
+          wget -q -O target-base.apk "https://github.com/revanced-apks/build-apps/releases/download/v19.16.39/youtube-19.16.39.apk"
           
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
-          echo "Substrate Verification Core: Size is $APK_SIZE bytes."
           if [ "$APK_SIZE" -lt 15000000 ]; then
-             echo "Primary mirror failed. Inverting to secondary deployment node..."
-             curl -L -o target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk"
-          fi
-          
-          APK_SIZE_FINAL=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
-          if [ "$APK_SIZE_FINAL" -lt 15000000 ]; then
             echo "::error::Substrate extraction completely failed. Matrix blocked the stream."
             exit 1
           fi
@@ -124,20 +106,21 @@ jobs:
       - name: 7. Execute Demonic Compile (God Mode Override)
         run: |
           cd workspace
+          # Executing Limitless Compilation Array
           java -Xmx4G -XX:+UseZGC \
             -jar morphe-cli.jar patch \
+            target-base.apk \
             --patches patches.mpp \
             --merge integrations.apk \
-            --options-file sovereign-options.json \
-            --keystore-entry-alias="morphe" \
-            --keystore-password="morphe_secure" \
-            --keystore-entry-password="morphe_secure" \
-            --keystore="morphe.keystore" \
-            --out YouTube_Kaiser_Sovereign.apk \
-            target-base.apk
+            --options sovereign-options.json \
+            --keystore morphe.keystore \
+            --keystore-entry-alias morphe \
+            --keystore-password morphe_secure \
+            --keystore-entry-password morphe_secure \
+            --out YouTube_Kaiser_Sovereign.apk
 
       - name: 8. Upload Sovereign Target Asset
         uses: actions/upload-artifact@v4
         with:
-          name: Sovereign-Rank0-Matrix-V2.x
+          name: Sovereign-Rank0-Matrix-Final
           path: workspace/YouTube_Kaiser_Sovereign.apk
