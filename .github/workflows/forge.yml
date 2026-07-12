@@ -33,7 +33,7 @@ jobs:
           CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-cli/releases/latest | jq -r '.assets[] | select(.name | test("morphe-cli-.*-all\\.jar")) | .browser_download_url')
           wget -q -O bin/morphe-cli.jar "$CLI_URL"
           
-          # Fetching Active Patches (.mpp) with embedded integrations
+          # Fetching Active Patches (.mpp)
           PATCHES_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest | jq -r '.assets[] | select(.name | test(".*\\.mpp$")) | .browser_download_url')
           wget -q -O bin/patches.mpp "$PATCHES_URL"
 
@@ -46,37 +46,37 @@ jobs:
             curl -L -o workspace/base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.3.4/youtube-universal-morphe-patches-v20.51.39.apk"
           fi
 
-      - name: Inject Sovereign Architecture Options (Pitch Black & UI)
+      - name: Inject Sovereign Architecture Options (V2 Schema)
         run: |
+          # Overriding matrix logic with the new 'patch' map architecture
           cat << 'EOF' > workspace/options.json
           [
             {
-              "patchName": "Theme",
-              "options": [
-                { "key": "darkThemeBackgroundColor", "value": "@android:color/black" },
-                { "key": "lightThemeBackgroundColor", "value": "@android:color/black" }
-              ]
+              "patch": "Theme",
+              "options": {
+                "darkThemeBackgroundColor": "@android:color/black",
+                "lightThemeBackgroundColor": "@android:color/black"
+              }
             },
             {
-              "patchName": "Custom branding name for YouTube",
-              "options": [
-                { "key": "appName", "value": "YouTube Sovereign" }
-              ]
+              "patch": "Custom branding name for YouTube",
+              "options": {
+                "appName": "YouTube Sovereign"
+              }
             },
             {
-              "patchName": "Swipe controls",
-              "options": [
-                { "key": "enableSwipeToSeek", "value": "true" },
-                { "key": "enableSwipeBrightness", "value": "true" },
-                { "key": "enableSwipeVolume", "value": "true" }
-              ]
+              "patch": "Swipe controls",
+              "options": {
+                "enableSwipeToSeek": "true",
+                "enableSwipeBrightness": "true",
+                "enableSwipeVolume": "true"
+              }
             }
           ]
           EOF
 
       - name: Execute Limit Breaker Compile (JVM Optimized Matrix)
         run: |
-          # Removed the invalid --merge argument. Integrations are processed natively via patches.mpp
           java -Xmx4G -Xms2G -jar bin/morphe-cli.jar patch \
             --patches bin/patches.mpp \
             --options-file workspace/options.json \
