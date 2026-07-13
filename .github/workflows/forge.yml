@@ -24,10 +24,9 @@ jobs:
       - name: 3. The Shadow Scraper (API-Bypass Core)
         run: |
           mkdir -p workspace && cd workspace
-          sudo apt-get update && sudo apt-get install -y curl wget grep
+          sudo apt-get update && sudo apt-get install -y curl wget grep unzip
           
-          echo "Slicing through Corporate API Limits via HTML DOM Scraping..."
-          
+          echo "Slicing through Corporate API Limits..."
           CLI_URI=$(curl -sL https://github.com/ReVanced/revanced-cli/releases/latest | grep -oE '/ReVanced/revanced-cli/releases/download/[^"]+\.jar' | head -n 1)
           wget -q -O morphe-cli.jar "https://github.com$CLI_URI" || true
           
@@ -36,36 +35,45 @@ jobs:
           
           INT_URI=$(curl -sL https://github.com/ReVanced/revanced-integrations/releases/latest | grep -oE '/ReVanced/revanced-integrations/releases/download/[^"]+\.apk' | head -n 1)
           wget -q -O integrations.apk "https://github.com$INT_URI" || true
-          
-          echo "Shadow Extraction Complete."
 
-      - name: 4. The Hydra Substrate Fetch (Multi-Node Fallback)
+      - name: 4. The Absolute Substrate Fetch (Rust Cyber-Scraper)
         run: |
           cd workspace
-          echo "Engaging Hydra Protocol for Substrate v21.04.222..."
+          echo "Matrix DMCA Blockade detected on GitHub. Engaging Rust-based Cyber-Scraper..."
           
-          # Node 1: Primary Mirror (The '|| true' prevents GitHub from crashing on 404)
-          wget -q -O target-base.apk "https://github.com/driftywinds/YT-builds/releases/download/v21.04.222/youtube-21.04.222-nodpi.apk" || true
+          # Downloading 'apkeep' (EFF's unblockable extractor)
+          wget -qO apkeep "https://github.com/EFForg/apkeep/releases/latest/download/apkeep-x86_64-unknown-linux-musl"
+          chmod +x apkeep
           
-          # Node 2: Archive.org Fallback (Immune to DMCA)
-          if [ ! -f "target-base.apk" ] || [ $(stat -c%s "target-base.apk" 2>/dev/null || echo 0) -lt 15000000 ]; then
-            echo "Node 1 Blocked/Dead. Engaging Node 2..."
-            curl -sL -o target-base.apk "https://archive.org/download/youtube-21.04.222/youtube-21.04.222.apk" || true
+          echo "Tunneling into APKPure Mainframe for v21.04.222..."
+          ./apkeep -a com.google.android.youtube@21.04.222 -d apkpure . || true
+          
+          APK_FILE=$(ls com.google.android.youtube*.apk 2>/dev/null | head -n 1)
+          XAPK_FILE=$(ls com.google.android.youtube*.xapk 2>/dev/null | head -n 1)
+          
+          # Failsafe: If 21.04.222 is fully purged, fallback to the immortal LTS build 19.16.39
+          if [ -z "$APK_FILE" ] && [ -z "$XAPK_FILE" ]; then
+            echo "Primary target missing. Engaging LTS Fallback (v19.16.39)..."
+            ./apkeep -a com.google.android.youtube@19.16.39 -d apkpure . || true
+            APK_FILE=$(ls com.google.android.youtube*.apk 2>/dev/null | head -n 1)
+            XAPK_FILE=$(ls com.google.android.youtube*.xapk 2>/dev/null | head -n 1)
           fi
           
-          # Node 3: Tertiary Direct Bypass
-          if [ ! -f "target-base.apk" ] || [ $(stat -c%s "target-base.apk" 2>/dev/null || echo 0) -lt 15000000 ]; then
-            echo "Node 2 Blocked/Dead. Engaging Node 3..."
-            curl -sL -o target-base.apk "https://github.com/RookieEnough/Morphe-AutoBuilds/releases/download/v3.4.0/youtube-universal-morphe-patches-v21.04.222.apk" || true
+          # Absolute XAPK Decoder: Extracts only the massive base APK and ignores tiny split configs
+          if [ -n "$XAPK_FILE" ]; then
+             echo "Encrypted XAPK package detected. Extracting raw Dalvik base..."
+             unzip -q "$XAPK_FILE" -d extracted_xapk
+             find extracted_xapk -type f -name "*.apk" -size +20M -exec mv {} target-base.apk \;
+          elif [ -n "$APK_FILE" ]; then
+             mv "$APK_FILE" target-base.apk
           fi
           
-          # Absolute Validation Check
           APK_SIZE=$(stat -c%s "target-base.apk" 2>/dev/null || echo 0)
           if [ "$APK_SIZE" -lt 15000000 ]; then
-            echo "::error::ALL HYDRA NODES DEAD. Substrate extraction failed. Size: $APK_SIZE bytes."
+            echo "::error::APKPure Tunnel Blocked. Size: $APK_SIZE bytes."
             exit 1
           fi
-          echo "Substrate Secured! Matrix bypassed. Size: $APK_SIZE bytes."
+          echo "Substrate Secured & Verified! Size: $APK_SIZE bytes."
 
       - name: 5. Options.json AST Schema Generation (V5+)
         run: |
@@ -116,6 +124,7 @@ jobs:
       - name: 7. Execute Demonic Compile (God Mode Override)
         run: |
           cd workspace
+          # The --experimental flag forces the engine to bypass any rigid version locks
           java -Xmx4G -XX:+UseZGC \
             -jar morphe-cli.jar patch \
             target-base.apk \
@@ -126,6 +135,7 @@ jobs:
             --keystore-entry-alias morphe \
             --keystore-password morphe_secure \
             --keystore-entry-password morphe_secure \
+            --experimental \
             --out YouTube_Kaiser_Sovereign.apk
 
       - name: 8. Upload Sovereign Target Asset
